@@ -1,0 +1,16 @@
+{
+    "Username": "<这里是账号>",
+    "Password": "<这里是密码>",
+    "Options": [
+        [10, 1, ["MOBILE", "UNICOM", "TELECOM"]],
+        [20, 0, ["MOBILE", "UNICOM", "TELECOM"]],
+        [30, 0, ["MOBILE", "UNICOM", "TELECOM"]],
+        [50, 0, ["MOBILE", "UNICOM", "TELECOM"]],
+        [100, 1, ["MOBILE", "UNICOM", "TELECOM"]],
+        [200, 0, ["MOBILE", "UNICOM", "TELECOM"]],
+        [300, 0, ["MOBILE", "UNICOM", "TELECOM"]],
+        [500, 0, ["MOBILE", "UNICOM", "TELECOM"]]
+    ],
+    "PoolLimit": 0,
+    "SleepDuration": 0
+}
