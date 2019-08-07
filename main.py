@@ -10,6 +10,8 @@ import json
 import multiprocessing
 import sys
 
+from python_json_config import ConfigBuilder
+
 from chadan_helper import ChadanHelper
 
 CONFIG_FILENAME = 'config.json'
@@ -17,19 +19,13 @@ CONFIG_FILENAME = 'config.json'
 
 def main():
     """Main process to trigger ChadanHelper."""
-    with open(CONFIG_FILENAME) as config_file:
-        config = json.load(config_file)
-
-        username = config['Username']
-        password = config['Password']
-        options = config['Options']
-        pool_limit = config['PoolLimit']
-        sleep_duration = config['SleepDuration']
-
-        chadan = ChadanHelper(username, password, options, pool_limit,
-                              sleep_duration)
-        chadan.login()
-        chadan.get_orders()
+    builder = ConfigBuilder()
+    config = builder.parse_config(CONFIG_FILENAME)
+    config.pool_limit = config.pool_limit or len(config.options)
+    config.sleep_duration = config.sleep_duration or 1
+    chadan = ChadanHelper(config)
+    chadan.login()
+    chadan.get_orders()
 
 
 if __name__ == '__main__':

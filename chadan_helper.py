@@ -26,34 +26,29 @@ PUBKEY_FORMAT = """-----BEGIN PUBLIC KEY-----
 
 class ChadanHelper():
     """Helper for chandan."""
-    def __init__(self, username, password, options, pool_limit,
-                 sleep_duration):
+    def __init__(self, config):
         super(ChadanHelper, self).__init__()
-        self.username = username
-        self.password = password
-        self.options = options
-        self.pool_limit = pool_limit or len(options)
-        self.sleep_duration = sleep_duration or 1
+        self.config = config
         self.session = requests.Session()
         self.session_id = None
 
     def login(self):
         """Login."""
         # Encrypt password with public_key and random_str.
-        data = {'userNo': self.username}
+        data = {'userNo': self.config.username}
         res = self.session.post(PUBKEY_URL, data=data)
         print(res.json())
         public_key = PUBKEY_FORMAT.format(res.json()['data']['public_key'])
         random_str = res.json()['data']['random_str']
         key = RSA.importKey(public_key)
         rsa = PKCS1_v1_5.new(key)
-        msg = (self.password + random_str).encode()
+        msg = (self.config.password + random_str).encode()
         enc_password = base64.b64encode(rsa.encrypt(msg))
         quote_password = urllib.parse.quote(enc_password)
 
         # Login with encrypted password.
         data = {
-            'userNo': self.username,
+            'userNo': self.config.username,
             'loginPwd': quote_password,
         }
         res = self.session.post(LOGIN_URL, data=data)
@@ -62,8 +57,8 @@ class ChadanHelper():
 
     def get_orders(self):
         """Get Orders."""
-        with Pool(self.pool_limit) as pool:
-            for value, amount, operators in self.options:
+        with Pool(self.config.pool_limit) as pool:
+            for value, amount, operators in self.config.options:
                 # self._get_order_wrapper(value, amount, operators)
                 pool.apply_async(self._get_order_wrapper,
                                  (value, amount, operators))
@@ -79,7 +74,7 @@ class ChadanHelper():
                 if res is not None and res.get('data'):
                     amount -= len(res['data'])
                     break
-                time.sleep(self.sleep_duration)
+                time.sleep(self.config.sleep_duration)
 
     def _get_order(self, value, operator, amount):
         """Get Order."""

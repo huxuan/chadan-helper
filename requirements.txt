@@ -1,2 +1,3 @@
-requests
 pycryptodome
+python-json-config
+requests
