@@ -6,7 +6,6 @@ Author: huxuan
 Email: i(at)huxuan.org
 Description: Main entrance for chadan helper.
 """
-import json
 import multiprocessing
 import sys
 
