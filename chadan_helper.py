@@ -76,7 +76,7 @@ class ChadanHelper():
             for operator in operators:
                 res = self._get_order(value, operator, amount)
                 if res is not None and res.get('data'):
-                    self._send_sc_notification(TEXT_GET_ORDER)
+                    self._send_sc_notification(TEXT_GET_ORDER, res.json())
                     amount -= len(res['data'])
                     break
                 time.sleep(self.config.sleep_duration)
