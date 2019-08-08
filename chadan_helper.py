@@ -107,6 +107,6 @@ class ChadanHelper():
             print('{} {}'.format(head, exc))
 
     def _send_sc_notification(self, text, desp=None):
-        """Send sc notificaiton."""
+        """Send sc notification."""
         for sckey in self.config.sckeys:
             requests.get(SC_URL.format(sckey, text, desp))
