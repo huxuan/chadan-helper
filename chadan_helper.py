@@ -19,10 +19,13 @@ BASE_URL = 'http://api.chadan.cn'
 LOGIN_URL = '{}/user/login'.format(BASE_URL)
 ORDER_URL = '{}/order/getOrderdd623299'.format(BASE_URL)
 PUBKEY_URL = '{}/user/getPublicKey'.format(BASE_URL)
-SC_URL = 'https://sc.ftqq.com/{}.send?text={}'
+SC_URL = 'https://sc.ftqq.com/{}.send?text={}&desp{}'
+
 PUBKEY_FORMAT = """-----BEGIN PUBLIC KEY-----
 {}
 -----END PUBLIC KEY-----"""
+
+TEXT_GET_ORDER = 'Chadan-helper 抢到单子啦'
 
 
 class ChadanHelper():
@@ -32,8 +35,6 @@ class ChadanHelper():
         self.config = config
         self.session = requests.Session()
         self.session_id = None
-        self.sc_url = (SC_URL.format(self.config.sckey, '{}')
-                       if self.config.sckey else None)
 
     def login(self):
         """Login."""
@@ -75,8 +76,7 @@ class ChadanHelper():
             for operator in operators:
                 res = self._get_order(value, operator, amount)
                 if res is not None and res.get('data'):
-                    if self.sc_url:
-                        requests.get(self.sc_url.format("Chadan-helper 抢到单子啦"))
+                    self._send_sc_notification(TEXT_GET_ORDER)
                     amount -= len(res['data'])
                     break
                 time.sleep(self.config.sleep_duration)
@@ -105,3 +105,8 @@ class ChadanHelper():
             return res.json()
         except Exception as exc:
             print('{} {}'.format(head, exc))
+
+    def _send_sc_notification(self, text, desp=None):
+        """Send sc notificaiton."""
+        for sckey in self.config.sckeys:
+            requests.get(SC_URL.format(sckey, text, desp))
