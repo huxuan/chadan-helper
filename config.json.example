@@ -12,5 +12,6 @@
         [500, 0, ["MOBILE", "UNICOM", "TELECOM"]]
     ],
     "pool_limit": 0,
-    "sleep_duration": 0
+    "sleep_duration": 0,
+    "sckey": ""
 }
