@@ -104,5 +104,6 @@ venv.bak/
 .mypy_cache/
 
 # Custom
-config.json
 *.swp
+.vscode
+config.json
