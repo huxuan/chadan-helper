@@ -8,9 +8,9 @@ Description: Chadan helper
 """
 from multiprocessing import Pool
 from threading import Timer
+from urllib.parse import quote
 import base64
 import time
-import urllib
 
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
@@ -52,7 +52,7 @@ class ChadanHelper():
         rsa = PKCS1_v1_5.new(key)
         msg = (self.config.password + random_str).encode()
         enc_password = base64.b64encode(rsa.encrypt(msg))
-        quote_password = urllib.parse.quote(enc_password)
+        quote_password = quote(enc_password)
 
         # Login with encrypted password.
         data = {
@@ -75,19 +75,11 @@ class ChadanHelper():
 
     def _get_order_wrapper(self, value, amount, operators):
         """Wrapper for get_order."""
-        res = None
         while amount:
             for operator in operators:
-                res = self._get_order(value, operator, amount)
-                if res is not None and res.get('data'):
-                    if self.config.auto_confirmation:
-                        for order in res['data']:
-                            Timer(self.config.confirm_delay, self._confirm_order,
-                                  order['id']).start()
-                    self._send_sc_notification(TEXT_GET_ORDER, res.json())
-                    amount -= len(res['data'])
-                    break
-                time.sleep(self.config.sleep_duration)
+                if amount > 0:
+                    amount -= self._get_order(value, operator, amount)
+                    time.sleep(self.config.sleep_duration)
 
     def _get_order(self, value, operator, amount):
         """Get Order."""
@@ -102,17 +94,21 @@ class ChadanHelper():
         }
         try:
             res = self.session.post(ORDER_URL, data=data)
-            if res.json().get('errorMsg'):
-                if res.json()['errorMsg'] == 'OK':
-                    print('{} 抢到 {} 单'.format(
-                        head, len(res.json().get('data', []))))
-                else:
-                    print('{} {}'.format(head, res.json()['errorMsg']))
-            else:
-                print('{} {}'.format(head, res.json()))
-            return res.json()
+            msg = res.json().get('errorMsg', res.json())
+            if msg == 'OK':
+                data = res.json().get('data', [])
+                if self.config.auto_confirmation:
+                    for order in data:
+                        Timer(self.config.confirm_delay,
+                              self._confirm_order, [order['id']]).start()
+                if data:
+                    self._send_sc_notification(TEXT_GET_ORDER, data)
+                print('{} 抢到 {} 单'.format(head, len(data)))
+                return len(data)
+            print('{} {}'.format(head, msg))
         except Exception as exc:
             print('{} {}'.format(head, exc))
+        return 0
 
     def _confirm_order(self, order_id):
         """Confirm order with some delay."""
@@ -131,4 +127,4 @@ class ChadanHelper():
     def _send_sc_notification(self, text, desp=None):
         """Send sc notification."""
         for sckey in self.config.sckeys:
-            requests.get(SC_URL.format(sckey, text, desp))
+            requests.get(SC_URL.format(sckey, quote(text), quote(desp)))
