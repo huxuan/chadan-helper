@@ -1,4 +1,4 @@
-.PHONY: clean deps install lint pep8 pyflakes pylint test
+.PHONY: clean deps install lint pycodestyle pyflakes pylint test
 
 clean:
 	find . -name '*.pyc' -print0 | xargs -0 rm -f
@@ -12,10 +12,10 @@ deps:
 install:
 	python setup.py install
 
-lint: pep8 pyflakes pylint
+lint: pycodestyle pyflakes pylint
 
 pycodestyle:
-	-pycodestyle--statistics --count main.py chadan_helper.py
+	-pycodestyle --statistics --count main.py chadan_helper.py
 
 pyflakes:
 	-pyflakes main.py chadan_helper.py
