@@ -11,6 +11,7 @@ from multiprocessing import Pool
 from threading import Timer
 from urllib.parse import quote
 import base64
+import json
 import random
 import time
 
@@ -26,7 +27,7 @@ CONFIRM_URL = 'http://www.chadan.cn/order/confirmOrderdd623299'
 LOGIN_URL = '{}/user/login'.format(BASE_URL)
 ORDER_URL = '{}/order/getOrderdd623299'.format(BASE_URL)
 PUBKEY_URL = '{}/user/getPublicKey'.format(BASE_URL)
-SC_URL = 'https://sc.ftqq.com/{}.send?text={}&desp{}'
+SC_URL = 'https://sc.ftqq.com/{}.send?text={}&desp={}'
 
 PUBKEY_FORMAT = """-----BEGIN PUBLIC KEY-----
 {}
@@ -130,7 +131,7 @@ class ChadanHelper():
             for order in data:
                 Timer(self.config.confirm_delay,
                       self._confirm_order, [order['id']]).start()
-        self._send_sc_notification(TEXT_GET_ORDER, data)
+        self._send_sc_notification(TEXT_GET_ORDER, json.dumps(data))
 
     def _confirm_order(self, order_id):
         """Confirm order with some delay."""
@@ -142,12 +143,12 @@ class ChadanHelper():
         }
         res = self.session.post(CONFIRM_URL, data=data)
         if res.status_code != 200:
-            self._send_sc_notification(TEXT_CONFIRM_FAIL, res.json())
+            self._send_sc_notification(TEXT_CONFIRM_FAIL, res.text)
         else:
-            self._send_sc_notification(TEXT_CONFIRM_SUCCEED, res.json())
+            self._send_sc_notification(TEXT_CONFIRM_SUCCEED, res.text)
 
     def _send_sc_notification(self, text, desp=''):
         """Send sc notification."""
         for sckey in self.config.sckeys:
-            requests.get(SC_URL.format(sckey, quote(text.encode('utf-8')),
-                                       quote(desp.encode('utf-8'))))
+            res = requests.get(SC_URL.format(sckey, quote(text), quote(desp)))
+            print(res.content)
