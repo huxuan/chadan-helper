@@ -137,7 +137,7 @@ class ChadanHelper():
         data = {
             'JSESSIONID': self.session_id,
             'id': order_id,
-            'order_status': 1,
+            'orderStatus': 1,
             'submitRemark': None,
         }
         res = self.session.post(CONFIRM_URL, data=data)
