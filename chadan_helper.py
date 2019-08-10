@@ -141,8 +141,6 @@ class ChadanHelper():
             'submitRemark': None,
         }
         res = self.session.post(CONFIRM_URL, data=data)
-        # TODO: print for debug purpose.
-        print(res.json())
         if res.status_code != 200:
             self._send_sc_notification(TEXT_CONFIRM_FAIL, res.json())
         else:
