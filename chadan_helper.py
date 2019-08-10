@@ -6,15 +6,20 @@ Author: huxuan
 Email: i(at)huxuan.org
 Description: Chadan helper
 """
+from datetime import datetime
 from multiprocessing import Pool
 from threading import Timer
 from urllib.parse import quote
 import base64
+import random
 import time
 
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
+from python_json_config import ConfigBuilder
 import requests
+
+CONFIG_FILENAME = 'config.json'
 
 BASE_URL = 'http://api.chadan.cn'
 CONFIRM_URL = 'http://www.chadan.cn/order/confirmOrderdd623299'
@@ -34,11 +39,11 @@ TEXT_GET_ORDER = 'Chadan-helper 抢到单子啦'
 
 class ChadanHelper():
     """Helper for chandan."""
-    def __init__(self, config):
+    def __init__(self):
         super(ChadanHelper, self).__init__()
-        self.config = config
         self.session = requests.Session()
         self.session_id = None
+        self._parse_config()
 
     def login(self):
         """Login."""
@@ -73,42 +78,59 @@ class ChadanHelper():
             pool.close()
             pool.join()
 
+    def _parse_config(self):
+        """Parse configuration."""
+        builder = ConfigBuilder()
+        config = builder.parse_config(CONFIG_FILENAME)
+        config.confirm_delay = config.confirm_delay or random.randint(500, 600)
+        config.pool_limit = config.pool_limit or len(config.options)
+        config.sleep_duration = config.sleep_duration or 1
+        self.config = config
+
     def _get_order_wrapper(self, value, amount, operators):
         """Wrapper for get_order."""
         while amount:
             for operator in operators:
                 if amount > 0:
-                    amount -= self._get_order(value, operator, amount)
+                    res_json = self._get_order(value, amount, operator)
+                    msg = res_json.get('errorMsg', res_json)
+                    head = '{} {:>3} {:>2} {:>7}'.format(
+                        datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+                        value, amount, operator)
+                    if msg == 'OK':
+                        data = res_json.get('data', [])
+                        amount -= len(data)
+                        if data:
+                            self._post_order(data)
+                        print('{} 抢到 {} 单'.format(head, len(data)))
+                    else:
+                        print('{} {}'.format(head, msg))
                     time.sleep(self.config.sleep_duration)
 
-    def _get_order(self, value, operator, amount):
+    def _get_order(self, value, amount, operator):
         """Get Order."""
-        head = '{:>3} {:>7} {:>2}'.format(value, operator, amount)
         data = {
             'JSESSIONID': self.session_id,
             'faceValue': value,
             'province': None,
             'amount': amount,
-            'operator': operator,
+            "operator": operator,
             'channel': 1,
         }
         try:
             res = self.session.post(ORDER_URL, data=data)
-            msg = res.json().get('errorMsg', res.json())
-            if msg == 'OK':
-                data = res.json().get('data', [])
-                if self.config.auto_confirmation:
-                    for order in data:
-                        Timer(self.config.confirm_delay,
-                              self._confirm_order, [order['id']]).start()
-                if data:
-                    self._send_sc_notification(TEXT_GET_ORDER, data)
-                print('{} 抢到 {} 单'.format(head, len(data)))
-                return len(data)
-            print('{} {}'.format(head, msg))
-        except Exception as exc:
-            print('{} {}'.format(head, exc))
-        return 0
+            return res.json()
+        except requests.exceptions.RequestException as exc:
+            print(exc)
+        return {}
+
+    def _post_order(self, data):
+        """Post processing after getting order."""
+        if self.config.auto_confirmation:
+            for order in data:
+                Timer(self.config.confirm_delay,
+                      self._confirm_order, [order['id']]).start()
+        self._send_sc_notification(TEXT_GET_ORDER, data)
 
     def _confirm_order(self, order_id):
         """Confirm order with some delay."""
@@ -119,12 +141,15 @@ class ChadanHelper():
             'submitRemark': None,
         }
         res = self.session.post(CONFIRM_URL, data=data)
+        # TODO: print for debug purpose.
+        print(res.json())
         if res.status_code != 200:
             self._send_sc_notification(TEXT_CONFIRM_FAIL, res.json())
         else:
             self._send_sc_notification(TEXT_CONFIRM_SUCCEED, res.json())
 
-    def _send_sc_notification(self, text, desp=None):
+    def _send_sc_notification(self, text, desp=''):
         """Send sc notification."""
         for sckey in self.config.sckeys:
-            requests.get(SC_URL.format(sckey, quote(text), quote(desp)))
+            requests.get(SC_URL.format(sckey, quote(text.encode('utf-8')),
+                                       quote(desp.encode('utf-8'))))
