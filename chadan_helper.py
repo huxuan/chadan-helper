@@ -23,7 +23,7 @@ import requests
 CONFIG_FILENAME = 'config.json'
 
 BASE_URL = 'http://api.chadan.cn'
-CONFIRM_URL = 'http://www.chadan.cn/order/confirmOrderdd623299'
+CONFIRM_URL = '{}/order/confirmOrderdd623299'.format(BASE_URL)
 LOGIN_URL = '{}/user/login'.format(BASE_URL)
 ORDER_URL = '{}/order/getOrderdd623299'.format(BASE_URL)
 PUBKEY_URL = '{}/user/getPublicKey'.format(BASE_URL)
