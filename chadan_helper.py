@@ -74,9 +74,10 @@ class ChadanHelper():
 
     def get_orders(self):
         """Get Orders."""
-        executor = ThreadPoolExecutor(self.config.pool_limit)
+        executor = ThreadPoolExecutor(len(self.config.options))
         for option in self.config.options:
-            executor.submit(self._get_order_wrapper, *option)
+            future = executor.submit(self._get_order_wrapper, *option)
+            future.add_done_callback(lambda x: x.result())
         try:
             while True:
                 time.sleep(self.config.sleep_duration)
@@ -90,7 +91,7 @@ class ChadanHelper():
         builder = ConfigBuilder()
         config = builder.parse_config(CONFIG_FILENAME)
         config.confirm_delay = config.confirm_delay or random.randint(500, 600)
-        config.pool_limit = config.pool_limit or len(config.options)
+        config.options = [option for option in config.options if option[1]]
         config.sleep_duration = config.sleep_duration or 1
         self.config = config
 
@@ -98,7 +99,7 @@ class ChadanHelper():
         """Wrapper for get_order."""
         while self.loop_status and amount:
             for operator in operators:
-                if amount > 0:
+                if self.loop_status and amount > 0:
                     res_json = self._get_order(value, amount, operator)
                     msg = res_json.get('errorMsg', res_json)
                     head = '{} {:>3} {:>2} {:>7}'.format(

@@ -13,7 +13,6 @@
     ],
     "auto_confirmation": false,
     "confirm_delay": 0,
-    "pool_limit": 0,
     "sleep_duration": 0,
     "sckeys": [
     ]
