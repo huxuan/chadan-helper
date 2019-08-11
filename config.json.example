@@ -2,7 +2,7 @@
     "username": "<这里是账号>",
     "password": "<这里是密码>",
     "options": [
-        [10, 1, ["MOBILE", "UNICOM", "TELECOM"]],
+        [10, 1, ["MOBILE", "UNICOM", "TELECOM", "SPECIAL"]],
         [20, 0, ["MOBILE", "UNICOM", "TELECOM"]],
         [30, 0, ["MOBILE", "UNICOM", "TELECOM"]],
         [50, 0, ["MOBILE", "UNICOM", "TELECOM"]],

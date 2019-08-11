@@ -27,6 +27,10 @@ CONFIRM_URL = '{}/order/confirmOrderdd623299'.format(BASE_URL)
 LOGIN_URL = '{}/user/login'.format(BASE_URL)
 ORDER_URL = '{}/order/getOrderdd623299'.format(BASE_URL)
 PUBKEY_URL = '{}/user/getPublicKey'.format(BASE_URL)
+SPECIAL_ORDER_URL = '{}/order/getSpecialOrder'.format(BASE_URL)
+
+OPERATOR_SPECIAL = 'SPECIAL'
+
 SC_URL = 'https://sc.ftqq.com/{}.send?text={}&desp={}'
 
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -92,7 +96,7 @@ class ChadanHelper():
         config = builder.parse_config(CONFIG_FILENAME)
         config.confirm_delay = config.confirm_delay or random.randint(500, 600)
         config.options = [option for option in config.options if option[1]]
-        config.sleep_duration = config.sleep_duration or 1
+        config.sleep_duration = config.sleep_duration or 0.5
         self.config = config
 
     def _get_order_wrapper(self, value, amount, operators):
@@ -101,44 +105,50 @@ class ChadanHelper():
             for operator in operators:
                 if self.loop_status and amount > 0:
                     res_json = self._get_order(value, amount, operator)
-                    msg = res_json.get('errorMsg', res_json)
-                    head = '{} {:>3} {:>2} {:>7}'.format(
-                        datetime.utcnow().strftime(DATETIME_FORMAT),
-                        value, amount, operator)
-                    if msg == 'OK':
-                        data = res_json.get('data', [])
-                        amount -= len(data)
-                        if data:
-                            self._post_order(data)
-                        print('{} 抢到 {} 单'.format(head, len(data)))
-                    else:
-                        print('{} {}'.format(head, msg))
-                    time.sleep(self.config.sleep_duration)
+                    amount -= self._post_order(
+                        res_json, value, amount, operator)
 
     def _get_order(self, value, amount, operator):
         """Get Order."""
+        url = SPECIAL_ORDER_URL
         data = {
             'JSESSIONID': self.session_id,
             'faceValue': value,
-            'province': None,
             'amount': amount,
-            "operator": operator,
             'channel': 1,
         }
+        if operator != OPERATOR_SPECIAL:
+            url = ORDER_URL
+            data.update({
+                'province': None,
+                "operator": operator,
+            })
         try:
-            res = self.session.post(ORDER_URL, data=data)
+            res = self.session.post(url, data=data)
             return res.json()
         except requests.exceptions.RequestException as exc:
             print(exc)
         return {}
 
-    def _post_order(self, data):
+    def _post_order(self, res_json, value, amount, operator):
         """Post processing after getting order."""
-        if self.config.auto_confirmation:
-            for order in data:
-                Timer(self.config.confirm_delay,
-                      self._confirm_order, [order['id']]).start()
-        self._send_sc_notification(TEXT_GET_ORDER, json.dumps(data))
+        head = '{} {:>3} {:>2} {:>7}'.format(
+            datetime.utcnow().strftime(DATETIME_FORMAT),
+            value, amount, operator)
+        msg = res_json.get('errorMsg', res_json)
+        data = res_json.get('data', {})
+        if msg == 'OK':
+            if data:
+                self._send_sc_notification(TEXT_GET_ORDER, json.dumps(data))
+                if self.config.auto_confirmation:
+                    for order in data:
+                        Timer(self.config.confirm_delay,
+                              self._confirm_order, [order['id']]).start()
+            print('{} 抢到 {} 单'.format(head, len(data)))
+        else:
+            print('{} {}'.format(head, msg))
+        time.sleep(self.config.sleep_duration)
+        return len(data)
 
     def _confirm_order(self, order_id):
         """Confirm order with some delay."""
@@ -158,4 +168,4 @@ class ChadanHelper():
         """Send sc notification."""
         for sckey in self.config.sckeys:
             res = requests.get(SC_URL.format(sckey, quote(text), quote(desp)))
-            print(res.content)
+            print(res.json())
