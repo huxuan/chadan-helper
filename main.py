@@ -6,9 +6,6 @@ Author: huxuan
 Email: i(at)huxuan.org
 Description: Main entrance for chadan helper.
 """
-import multiprocessing
-import sys
-
 from chadan_helper import ChadanHelper
 
 
@@ -20,7 +17,4 @@ def main():
 
 
 if __name__ == '__main__':
-    # Fix multiprocessing issue for windows executable.
-    if sys.platform.startswith('win'):
-        multiprocessing.freeze_support()
     main()

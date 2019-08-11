@@ -6,8 +6,8 @@ Author: huxuan
 Email: i(at)huxuan.org
 Description: Chadan helper
 """
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
-from multiprocessing import Pool
 from threading import Timer
 from urllib.parse import quote
 import base64
@@ -29,6 +29,7 @@ ORDER_URL = '{}/order/getOrderdd623299'.format(BASE_URL)
 PUBKEY_URL = '{}/user/getPublicKey'.format(BASE_URL)
 SC_URL = 'https://sc.ftqq.com/{}.send?text={}&desp={}'
 
+DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 PUBKEY_FORMAT = """-----BEGIN PUBLIC KEY-----
 {}
 -----END PUBLIC KEY-----"""
@@ -36,15 +37,17 @@ PUBKEY_FORMAT = """-----BEGIN PUBLIC KEY-----
 TEXT_CONFIRM_FAIL = 'Chadan-helper 报单失败啦'
 TEXT_CONFIRM_SUCCEED = 'Chadan-helper 报单成功啦'
 TEXT_GET_ORDER = 'Chadan-helper 抢到单子啦'
+TEXT_EXIT = 'Chadan-helper 将要退出啦'
 
 
 class ChadanHelper():
     """Helper for chandan."""
     def __init__(self):
         super(ChadanHelper, self).__init__()
+        self._parse_config()
+        self.loop_status = True
         self.session = requests.Session()
         self.session_id = None
-        self._parse_config()
 
     def login(self):
         """Login."""
@@ -71,13 +74,16 @@ class ChadanHelper():
 
     def get_orders(self):
         """Get Orders."""
-        with Pool(self.config.pool_limit) as pool:
-            for value, amount, operators in self.config.options:
-                # self._get_order_wrapper(value, amount, operators)
-                pool.apply_async(self._get_order_wrapper,
-                                 (value, amount, operators))
-            pool.close()
-            pool.join()
+        executor = ThreadPoolExecutor(self.config.pool_limit)
+        for option in self.config.options:
+            executor.submit(self._get_order_wrapper, *option)
+        try:
+            while True:
+                time.sleep(self.config.sleep_duration)
+        except KeyboardInterrupt:
+            print(TEXT_EXIT)
+            self.loop_status = False
+            executor.shutdown(wait=False)
 
     def _parse_config(self):
         """Parse configuration."""
@@ -90,13 +96,13 @@ class ChadanHelper():
 
     def _get_order_wrapper(self, value, amount, operators):
         """Wrapper for get_order."""
-        while amount:
+        while self.loop_status and amount:
             for operator in operators:
                 if amount > 0:
                     res_json = self._get_order(value, amount, operator)
                     msg = res_json.get('errorMsg', res_json)
                     head = '{} {:>3} {:>2} {:>7}'.format(
-                        datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+                        datetime.utcnow().strftime(DATETIME_FORMAT),
                         value, amount, operator)
                     if msg == 'OK':
                         data = res_json.get('data', [])
