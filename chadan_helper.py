@@ -125,7 +125,10 @@ class ChadanHelper():
             })
         try:
             res = self.session.post(url, data=data)
-            return res.json()
+            try:
+                return res.json()
+            except json.JSONDecodeError:
+                print(res.text)
         except requests.exceptions.RequestException as exc:
             print(exc)
         return {}
