@@ -138,13 +138,13 @@ class ChadanHelper():
         msg = res_json.get('errorMsg', res_json)
         data = res_json.get('data', {})
         if msg == 'OK':
+            print('{} 抢到 {} 单'.format(head, len(data)))
             if data:
-                self._send_sc_notification(TEXT_GET_ORDER, json.dumps(data))
                 if self.config.auto_confirmation:
                     for order in data:
                         Timer(self.config.confirm_delay,
                               self._confirm_order, [order['id']]).start()
-            print('{} 抢到 {} 单'.format(head, len(data)))
+                self._send_sc_notification(TEXT_GET_ORDER, json.dumps(data))
         else:
             print('{} {}'.format(head, msg))
         time.sleep(self.config.sleep_duration)
