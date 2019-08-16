@@ -29,6 +29,11 @@ ORDER_URL = '{}/order/getOrderdd623299'.format(BASE_URL)
 PUBKEY_URL = '{}/user/getPublicKey'.format(BASE_URL)
 SPECIAL_ORDER_URL = '{}/order/getSpecialOrder'.format(BASE_URL)
 
+OPERATORS = {
+    'MOBILE': '移动',
+    'TELECOM': '电信',
+    'UNICOM': '联通',
+}
 OPERATOR_SPECIAL = 'SPECIAL'
 
 SC_URL = 'https://sc.ftqq.com/{}.send?text={}&desp={}'
@@ -37,10 +42,10 @@ DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 PUBKEY_FORMAT = """-----BEGIN PUBLIC KEY-----
 {}
 -----END PUBLIC KEY-----"""
+NOTIFICATION_KEY_FORMAT = '{} {}{} {}'
+TITLE_GET_ORDER_FORMAT = '[CH]已抢单 {}元'
+TITLE_CONFIRM_ORDER_FORMAT = '[CH]报单 {} {}'
 
-TEXT_CONFIRM_FAIL = 'Chadan-helper 报单失败啦'
-TEXT_CONFIRM_SUCCEED = 'Chadan-helper 报单成功啦'
-TEXT_GET_ORDER = 'Chadan-helper 抢到单子啦'
 TEXT_EXIT = 'Chadan-helper 将要退出啦'
 
 
@@ -142,18 +147,23 @@ class ChadanHelper():
         data = res_json.get('data', {})
         if msg == 'OK':
             print('{} 抢到 {} 单'.format(head, len(data)))
-            if data:
+            for order in data:
+                key = NOTIFICATION_KEY_FORMAT.format(
+                    order['rechargeAccount'],
+                    order['product']['province'],
+                    OPERATORS[order['product']['operator']],
+                    order['product']['faceValue'])
                 if self.config.auto_confirmation:
-                    for order in data:
-                        Timer(self.config.confirm_delay,
-                              self._confirm_order, [order['id']]).start()
-                self._send_sc_notification(TEXT_GET_ORDER, json.dumps(data))
+                    Timer(self.config.confirm_delay, self._confirm_order,
+                          [order['id'], key]).start()
+                title = TITLE_GET_ORDER_FORMAT.format(key)
+                self._send_sc_notification(title, json.dumps(order))
         else:
             print('{} {}'.format(head, msg))
         time.sleep(self.config.sleep_duration)
         return len(data)
 
-    def _confirm_order(self, order_id):
+    def _confirm_order(self, order_id, key):
         """Confirm order with some delay."""
         data = {
             'JSESSIONID': self.session_id,
@@ -162,10 +172,9 @@ class ChadanHelper():
             'submitRemark': None,
         }
         res = self.session.post(CONFIRM_URL, data=data)
-        if res.status_code != 200:
-            self._send_sc_notification(TEXT_CONFIRM_FAIL, res.text)
-        else:
-            self._send_sc_notification(TEXT_CONFIRM_SUCCEED, res.text)
+        title = TITLE_CONFIRM_ORDER_FORMAT.format(
+            key, res.json()['errorMsg'][-5:])
+        self._send_sc_notification(title, res.text)
 
     def _send_sc_notification(self, text, desp=''):
         """Send sc notification."""
