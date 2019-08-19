@@ -94,9 +94,6 @@ class ChadanHelper():
             self.loop_status = False
             executor.shutdown(wait=False)
 
-    def _parse_config(self):
-        """Parse configuration."""
-
     def _get_order_wrapper(self, value, amount, operators):
         """Wrapper for get_order."""
         while self.loop_status and amount > 0:
