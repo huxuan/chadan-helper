@@ -40,7 +40,7 @@ OPERATOR_SPECIAL = 'SPECIAL'
 
 SC_URL = 'https://sc.ftqq.com/{}.send?text={}&desp={}'
 
-DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 TIME_FORMAT = '%H:%M'
 PUBKEY_FORMAT = """-----BEGIN PUBLIC KEY-----
 {}
@@ -112,7 +112,7 @@ class ChadanHelper():
 
     def _get_order_wrapper(self, value, amount, operators):
         """Wrapper for get_order."""
-        while self.loop_status and amount:
+        while self.loop_status and amount > 0:
             if self.config.check_time and \
                not within_time_range(self.config.startTime, self.config.endTime):
                 print(TEXT_OFF_TIME)
@@ -123,6 +123,7 @@ class ChadanHelper():
                     res_json = self._get_order(value, amount, operator)
                     amount -= self._post_order(
                         res_json, value, amount, operator)
+                time.sleep(self.config.sleep_duration)
 
     def _get_order(self, value, amount, operator):
         """Get Order."""
@@ -171,7 +172,6 @@ class ChadanHelper():
                 self._send_sc_notification(title, json.dumps(order))
         else:
             print('{} {}'.format(head, msg))
-        time.sleep(self.config.sleep_duration)
         return len(data)
 
     def _confirm_order(self, order_id, key):
