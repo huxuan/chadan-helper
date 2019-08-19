@@ -20,6 +20,8 @@ from Crypto.PublicKey import RSA
 from python_json_config import ConfigBuilder
 import requests
 
+from util import within_time_range
+
 CONFIG_FILENAME = 'config.json'
 
 BASE_URL = 'http://api.chadan.cn'
@@ -39,6 +41,7 @@ OPERATOR_SPECIAL = 'SPECIAL'
 SC_URL = 'https://sc.ftqq.com/{}.send?text={}&desp={}'
 
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+TIME_FORMAT = '%H:%M'
 PUBKEY_FORMAT = """-----BEGIN PUBLIC KEY-----
 {}
 -----END PUBLIC KEY-----"""
@@ -47,6 +50,7 @@ TITLE_GET_ORDER_FORMAT = '[CH]已抢单 {}元'
 TITLE_CONFIRM_ORDER_FORMAT = '[CH]报单 {} {}'
 
 TEXT_EXIT = 'Chadan-helper 将要退出啦'
+TEXT_OFF_TIME = 'Chadan-helper 也要休息啦'
 
 
 class ChadanHelper():
@@ -102,11 +106,18 @@ class ChadanHelper():
         config.confirm_delay = config.confirm_delay or random.randint(500, 600)
         config.options = [option for option in config.options if option[1]]
         config.sleep_duration = config.sleep_duration or 0.5
+        config.startTime = datetime.strptime(config.startTimeInUTC, TIME_FORMAT).time()
+        config.endTime = datetime.strptime(config.endTimeInUTC, TIME_FORMAT).time()
         self.config = config
 
     def _get_order_wrapper(self, value, amount, operators):
         """Wrapper for get_order."""
         while self.loop_status and amount:
+            if self.config.check_time and \
+               not within_time_range(self.config.startTime, self.config.endTime):
+                print(TEXT_OFF_TIME)
+                time.sleep(self.config.sleep_duration)
+                continue
             for operator in operators:
                 if self.loop_status and amount > 0:
                     res_json = self._get_order(value, amount, operator)
