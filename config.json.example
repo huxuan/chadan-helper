@@ -17,6 +17,6 @@
     "sckeys": [
     ],
     "check_time": true,
-    "startTimeInUTC": "00:00",
-    "endTimeInUTC": "14:00"
+    "startTime": "00:00",
+    "endTime": "14:00"
 }
