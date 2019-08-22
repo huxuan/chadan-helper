@@ -110,7 +110,7 @@ class ChadanHelper():
                     res_json = self._get_order(value, amount, operator)
                     amount -= self._post_order(
                         res_json, value, amount, operator)
-                time.sleep(self.config.sleep_duration)
+                time.sleep(self.config.sleep_duration / len(operators))
 
     def _get_order(self, value, amount, operator):
         """Get Order."""

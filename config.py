@@ -43,6 +43,6 @@ class Config(_Config):  # pylint: disable=too-few-public-methods
         # Default value.
         self.confirm_delay = self.confirm_delay or random.randint(500, 600)
         self.options = [option for option in self.options if option[1]]
-        self.sleep_duration = self.sleep_duration or 0.5
+        self.sleep_duration = self.sleep_duration or 1.0
         self.start_time = parse_time(self.start_time)
         self.end_time = parse_time(self.end_time)
