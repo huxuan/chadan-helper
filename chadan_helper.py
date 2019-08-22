@@ -27,6 +27,7 @@ ORDER_URL = '{}/order/getOrderdd623299'.format(BASE_URL)
 PUBKEY_URL = '{}/user/getPublicKey'.format(BASE_URL)
 SPECIAL_ORDER_URL = '{}/order/getSpecialOrder'.format(BASE_URL)
 
+MAX_AMOUNT = [1, 1, 1, 4, 7, 10, 15]
 OPERATORS = {
     'MOBILE': '移动',
     'TELECOM': '电信',
@@ -54,6 +55,7 @@ class ChadanHelper():
         super(ChadanHelper, self).__init__()
         self.config = config
         self.loop_status = True
+        self.max_amount = 1
         self.session = requests.Session()
         self.session_id = None
 
@@ -78,6 +80,7 @@ class ChadanHelper():
         }
         res = self.session.post(LOGIN_URL, data=data)
         print(res.json())
+        self.max_amount = MAX_AMOUNT[res.json()['data']['userLevel'] - 1]
         self.session_id = self.session.cookies.get_dict()['JSESSIONID']
 
     def get_orders(self):
@@ -116,7 +119,7 @@ class ChadanHelper():
         data = {
             'JSESSIONID': self.session_id,
             'faceValue': value,
-            'amount': amount,
+            'amount': min(amount, self.max_amount),
             'channel': 1,
         }
         if operator != OPERATOR_SPECIAL:
