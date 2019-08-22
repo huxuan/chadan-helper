@@ -100,8 +100,8 @@ class ChadanHelper():
         """Wrapper for get_order."""
         while self.loop_status and amount > 0:
             if self.config.check_time and \
-               not within_time_range(self.config.startTime,
-                                     self.config.endTime):
+               not within_time_range(self.config.start_time,
+                                     self.config.end_time):
                 print(TEXT_OFF_TIME)
                 time.sleep(self.config.sleep_duration)
                 continue

@@ -8,6 +8,8 @@ Description: Utilities used for chadan helper.
 """
 from datetime import datetime
 
+TIME_FORMAT = '%H:%M'
+
 
 def within_time_range(start_time, end_time, now_time=None):
     """Check whether time is in a specific time range."""
@@ -15,3 +17,9 @@ def within_time_range(start_time, end_time, now_time=None):
     if start_time < end_time:
         return start_time <= now_time <= end_time
     return now_time >= start_time or now_time <= end_time
+
+
+def parse_time(time_str):
+    """Parse Time in string with specific format."""
+    time_str = time_str or '00:00'
+    return datetime.strptime(time_str, TIME_FORMAT).time()
