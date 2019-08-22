@@ -18,6 +18,7 @@ from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 import requests
 
+from notification import Notification
 from util import within_time_range
 
 BASE_URL = 'http://api.chadan.cn'
@@ -34,8 +35,6 @@ OPERATORS = {
     'UNICOM': '联通',
 }
 OPERATOR_SPECIAL = 'SPECIAL'
-
-SC_URL = 'https://sc.ftqq.com/{}.send?text={}&desp={}'
 
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 PUBKEY_FORMAT = """-----BEGIN PUBLIC KEY-----
@@ -157,7 +156,7 @@ class ChadanHelper():
                     Timer(self.config.confirm_delay, self._confirm_order,
                           [order['id'], key]).start()
                 title = TITLE_GET_ORDER_FORMAT.format(key)
-                self._send_sc_notification(title, json.dumps(order))
+                Notification.send(title, json.dumps(order))
         else:
             print('{} {}'.format(head, msg))
         return len(data)
@@ -173,10 +172,4 @@ class ChadanHelper():
         res = self.session.post(CONFIRM_URL, data=data)
         title = TITLE_CONFIRM_ORDER_FORMAT.format(
             key, res.json()['errorMsg'][-5:])
-        self._send_sc_notification(title, res.text)
-
-    def _send_sc_notification(self, text, desp=''):
-        """Send sc notification."""
-        for sckey in self.config.sckeys:
-            res = requests.get(SC_URL.format(sckey, quote(text), quote(desp)))
-            print(res.json())
+        Notification.send(title, res.text)

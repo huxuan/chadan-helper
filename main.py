@@ -12,6 +12,7 @@ import random
 from python_json_config import ConfigBuilder
 
 from chadan_helper import ChadanHelper
+from notification import Notification
 
 CONFIG_FILENAME = 'config.json'
 TIME_FORMAT = '%H:%M'
@@ -20,6 +21,7 @@ TIME_FORMAT = '%H:%M'
 def main():
     """Main process to trigger ChadanHelper."""
     config = parse_config()
+    Notification.set_sckeys(config.sckeys)
     chadan = ChadanHelper(config)
     chadan.login()
     chadan.get_orders()
