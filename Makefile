@@ -15,10 +15,10 @@ install:
 lint: pycodestyle pyflakes pylint
 
 pycodestyle:
-	-pycodestyle --statistics --count main.py chadan_helper.py
+	-pycodestyle --statistics --count *.py
 
 pyflakes:
-	-pyflakes main.py chadan_helper.py
+	-pyflakes *.py
 
 pylint:
-	-pylint main.py chadan_helper.py
+	-pylint *.py
