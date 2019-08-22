@@ -7,12 +7,11 @@ Email: i(at)huxuan.org
 Description: Utilities used for chadan helper.
 """
 from datetime import datetime
-from datetime import time
 
 
-def within_time_range(startTime, endTime, nowTime=None):
+def within_time_range(start_time, end_time, now_time=None):
     """Check whether time is in a specific time range."""
-    nowTime = nowTime or datetime.utcnow().time()
-    if startTime < endTime:
-        return nowTime >= startTime and nowTime <= endTime
-    return nowTime >= startTime or nowTime <= endTime
+    now_time = now_time or datetime.utcnow().time()
+    if start_time < end_time:
+        return start_time <= now_time <= end_time
+    return now_time >= start_time or now_time <= end_time
