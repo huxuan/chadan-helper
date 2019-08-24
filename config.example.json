@@ -16,38 +16,14 @@
         }
     ],
     "options": [
-        [10, 0, {
-            "chadan": ["MOBILE", "UNICOM", "TELECOM", "SPECIAL"],
-            "chadan1": ["MOBILE", "UNICOM", "TELECOM", "SPECIAL"]
-        }],
-        [20, 0, {
-            "chadan": ["MOBILE", "UNICOM", "TELECOM"],
-            "chadan1": ["SPECIAL"]
-        }],
-        [30, 0, {
-            "chadan": ["MOBILE", "UNICOM", "TELECOM", "SPECIAL"],
-            "chadan1": ["SPECIAL"]
-        }],
-        [50, 0, {
-            "chadan": ["MOBILE", "UNICOM", "TELECOM", "SPECIAL"],
-            "chadan1": ["SPECIAL"]
-        }],
-        [100, 0, {
-            "chadan": ["MOBILE", "UNICOM", "TELECOM", "SPECIAL"],
-            "chadan1": ["SPECIAL"]
-        }],
-        [200, 0, {
-            "chadan": ["MOBILE", "UNICOM", "TELECOM", "SPECIAL"],
-            "chadan1": ["SPECIAL"]
-        }],
-        [300, 0, {
-            "chadan": ["MOBILE", "UNICOM", "TELECOM", "SPECIAL"],
-            "chadan1": ["SPECIAL"]
-        }],
-        [500, 0, {
-            "chadan": ["MOBILE", "UNICOM", "TELECOM", "SPECIAL"],
-            "chadan1": ["SPECIAL"]
-        }]
+        [10, 0, { "chadan": "MUT" }],
+        [20, 0, { "chadan": "MUT", "chadan1": "MUT" }],
+        [30, 0, { "chadan": "S", "chadan1": "MUTS" }],
+        [50, 0, { "chadan": "MUTS", "chadan1": "MUTS" }],
+        [100, 0, { "chadan": "MUTS", "chadan1": "MUTS" }],
+        [200, 0, { "chadan": "MUTS", "chadan1": "MUTS" }],
+        [300, 0, { "chadan": "MUTS", "chadan1": "MUTS" }],
+        [500, 0, { "chadan": "MUTS", "chadan1": "MUTS" }]
     ],
     "sleep_duration": 0,
     "check_time": true,

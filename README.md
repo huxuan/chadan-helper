@@ -21,10 +21,10 @@
   - `amount`: 想要抢的订单总数。
   - `operators`: 不同账号的运营商列表。
     - 不同账号用其 `platform` 的值为 key，对应的运营商列表为 value。
-    - 运营商目前支持4种: 移动 `MOBILE`, 联通 `UNICOM`, 电信 `TELECOM`, 特价单 `SPECIAL`。
-    - 例如 `"chadan" : ["MOBILE", "UNICOM", "TELECOM", "SPECIAL"]`。
+    - 运营商目前支持4种，分别用4个大写字母标识，`M` 是移动，`U` 是联通，`T`是电信，`S`是特价单。
+    - 例如 `"chadan1" : "MUTS"`，表示 `chadan1` 对应的账号抢所有运营商的单子。
 - `sleep_duration`: 每条抢单条目中不同账号运营商请求之间的间隔。
-  - 注意: 不同抢单条目之间互不影响。
+  - 注意: 这里的间隔指同一条目所有运营商请求之间间隔的总和，不同抢单条目之间互不影响。
 - `sckeys`: 通过 [ServerChan](http://sc.ftqq.com/3.version) 实现微信通知的 key 列表。
   - 注意: 这里是一个列表，为了实现多个微信同时通知，格式为 `"sckeys": ["key2", "key2"]`。
 - `check_time`: 是否检查时间的开关，在非设定时间将不进行抢单。

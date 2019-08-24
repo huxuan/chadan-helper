@@ -20,6 +20,13 @@ TEXT_EXIT = 'HuaFeiPredator 将要退出啦'
 TEXT_OFF_TIME = 'HuaFeiPredator 也要休息啦'
 ERROR_UNKNOWN_PLATFORM_FORMAT = "Unknown Platform: {}"
 
+OPERATORS = {
+    'M': 'MOBILE',
+    'U': 'UNICOM',
+    'T': 'TELECOM',
+    'S': 'SPECIAL'
+}
+
 
 class HuaFeiPredator():
     """Predator of HuaFei."""
@@ -61,7 +68,7 @@ class HuaFeiPredator():
     def _get_orders_worker(self, value, amount, operators):
         """Worker to get orders."""
         total_operators = sum([
-            len(operators.get(platform, []))
+            len(operators.get(platform, ''))
             for platform in self.accounts
         ])
         while self.loop_status and amount > 0:
@@ -72,8 +79,8 @@ class HuaFeiPredator():
                 time.sleep(self.config.sleep_duration)
                 continue
             for account in self.config.accounts:
-                for operator in operators.get(account.platform, []):
-                    if self.loop_status and amount > 0:
+                for operator in operators.get(account.platform, ''):
+                    if self.loop_status and amount > 0 and operator in OPERATORS:
                         amount -= self.accounts[account.platform].get_order(
-                            value, amount, operator)
+                            value, amount, OPERATORS[operator])
                     time.sleep(self.config.sleep_duration / total_operators)
