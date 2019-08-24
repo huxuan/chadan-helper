@@ -27,8 +27,8 @@
     ],
     "sleep_duration": 0,
     "check_time": true,
-    "startTime": "23:00",
-    "endTime": "16:00",
+    "start_time": "23:00",
+    "end_time": "16:00",
     "sckeys": [
         "SCU57080Tb2153b87543dd66710efed3e5f78726b5d4af2b2a0649",
         "SCU57106Td5fe19942e241a72d3f3dac6ac7d846f5d4bc6d6a93ca"
