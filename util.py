@@ -12,6 +12,7 @@ TIME_FORMAT = '%H:%M'
 
 
 def within_time_range(start_time, end_time, now_time=None):
+    # pylint: disable=unused-variable
     """Check whether time is in a specific time range."""
     now_time = now_time or datetime.utcnow().time()
     if start_time < end_time:
@@ -20,6 +21,7 @@ def within_time_range(start_time, end_time, now_time=None):
 
 
 def parse_time(time_str):
+    # pylint: disable=unused-variable
     """Parse Time in string with specific format."""
     time_str = time_str or '00:00'
     return datetime.strptime(time_str, TIME_FORMAT).time()

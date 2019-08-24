@@ -4,22 +4,15 @@
 File: main.py
 Author: huxuan
 Email: i(at)huxuan.org
-Description: Main entrance for chadan helper.
+Description: Main entrance for HuaFei Predator.
 """
-from chadan_helper import ChadanHelper
-from config import Config
-from notification import Notification
-
-CONFIG_FILENAME = 'config.json'
+from huafei_predator import HuaFeiPredator
 
 
 def main():
-    """Main process to trigger ChadanHelper."""
-    config = Config(CONFIG_FILENAME)
-    Notification.set_sckeys(config.sckeys)
-    chadan = ChadanHelper(config)
-    chadan.login()
-    chadan.get_orders()
+    """Main process to trigger HuaFei Predator."""
+    app = HuaFeiPredator()
+    app.run()
 
 
 if __name__ == '__main__':

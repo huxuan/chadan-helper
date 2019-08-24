@@ -6,20 +6,22 @@ Author: huxuan
 Email: i(at)huxuan.org
 Description: Chadan helper
 """
-from concurrent.futures import ThreadPoolExecutor
+try:
+    import simplejson as json
+except ImportError:
+    import json
+
 from datetime import datetime
 from threading import Timer
 from urllib.parse import quote
 import base64
-import json
-import time
+import random
 
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 import requests
 
 from notification import Notification
-from util import within_time_range
 
 BASE_URL = 'http://api.chadan.cn'
 CONFIRM_URL = '{}/order/confirmOrderdd623299'.format(BASE_URL)
@@ -37,15 +39,10 @@ OPERATORS = {
 OPERATOR_SPECIAL = 'SPECIAL'
 
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+HEAD_FORMAT = '{} {:10} {} {:>3} {:>2} {:7}'
 PUBKEY_FORMAT = """-----BEGIN PUBLIC KEY-----
 {}
 -----END PUBLIC KEY-----"""
-NOTIFICATION_KEY_FORMAT = '{} {}{} {}'
-TITLE_GET_ORDER_FORMAT = '[CH]已抢单 {}元'
-TITLE_CONFIRM_ORDER_FORMAT = '[CH]报单 {} {}'
-
-TEXT_EXIT = 'Chadan-helper 将要退出啦'
-TEXT_OFF_TIME = 'Chadan-helper 也要休息啦'
 
 
 class ChadanHelper():
@@ -53,12 +50,13 @@ class ChadanHelper():
     def __init__(self, config):
         super(ChadanHelper, self).__init__()
         self.config = config
-        self.loop_status = True
+        self.config.confirm_delay = self.config.confirm_delay or \
+            random.randint(500, 600)
         self.max_amount = 1
         self.session = requests.Session()
-        self.session_id = None
+        self.session_id = self._login()
 
-    def login(self):
+    def _login(self):
         """Login."""
         # Encrypt password with public_key and random_str.
         data = {'userNo': self.config.username}
@@ -80,39 +78,9 @@ class ChadanHelper():
         res = self.session.post(LOGIN_URL, data=data)
         print(res.json())
         self.max_amount = MAX_AMOUNT[res.json()['data']['userLevel'] - 1]
-        self.session_id = self.session.cookies.get_dict()['JSESSIONID']
+        return self.session.cookies.get_dict()['JSESSIONID']
 
-    def get_orders(self):
-        """Get Orders."""
-        executor = ThreadPoolExecutor(len(self.config.options))
-        for option in self.config.options:
-            future = executor.submit(self._get_order_wrapper, *option)
-            future.add_done_callback(lambda x: x.result())
-        try:
-            while True:
-                time.sleep(self.config.sleep_duration)
-        except KeyboardInterrupt:
-            print(TEXT_EXIT)
-            self.loop_status = False
-            executor.shutdown(wait=False)
-
-    def _get_order_wrapper(self, value, amount, operators):
-        """Wrapper for get_order."""
-        while self.loop_status and amount > 0:
-            if self.config.check_time and \
-               not within_time_range(self.config.start_time,
-                                     self.config.end_time):
-                print(TEXT_OFF_TIME)
-                time.sleep(self.config.sleep_duration)
-                continue
-            for operator in operators:
-                if self.loop_status and amount > 0:
-                    res_json = self._get_order(value, amount, operator)
-                    amount -= self._post_order(
-                        res_json, value, amount, operator)
-                time.sleep(self.config.sleep_duration / len(operators))
-
-    def _get_order(self, value, amount, operator):
+    def get_order(self, value, amount, operator):
         """Get Order."""
         url = SPECIAL_ORDER_URL
         data = {
@@ -130,38 +98,42 @@ class ChadanHelper():
         try:
             res = self.session.post(url, data=data)
             try:
-                return res.json()
+                return self._post_order(res.json(), value, amount, operator)
             except json.JSONDecodeError:
                 print(res.text)
         except requests.exceptions.RequestException as exc:
             print(exc)
-        return {}
+        return 0
 
     def _post_order(self, res_json, value, amount, operator):
         """Post processing after getting order."""
-        head = '{} {:>3} {:>2} {:>7}'.format(
+        head = HEAD_FORMAT.format(
             datetime.utcnow().strftime(DATETIME_FORMAT),
+            self.config.platform, self.config.username,
             value, amount, operator)
         msg = res_json.get('errorMsg', res_json)
         data = res_json.get('data', {})
         if msg == 'OK':
             print('{} 抢到 {} 单'.format(head, len(data)))
             for order in data:
-                key = NOTIFICATION_KEY_FORMAT.format(
-                    order['rechargeAccount'],
-                    order['product']['province'],
-                    OPERATORS[order['product']['operator']],
-                    order['product']['faceValue'])
+                args = {
+                    'platform': self.config.platform,
+                    'username': self.config.username,
+                    'mobile': order['rechargeAccount'],
+                    'operator':
+                        order['product']['province'] +
+                        OPERATORS[order['product']['operator']],
+                    'value': order['product']['faceValue']
+                }
                 if self.config.auto_confirmation:
                     Timer(self.config.confirm_delay, self._confirm_order,
-                          [order['id'], key]).start()
-                title = TITLE_GET_ORDER_FORMAT.format(key)
-                Notification.send(title, json.dumps(order))
+                          [order['id'], args]).start()
+                Notification.send_get_order(args)
         else:
             print('{} {}'.format(head, msg))
         return len(data)
 
-    def _confirm_order(self, order_id, key):
+    def _confirm_order(self, order_id, args):
         """Confirm order with some delay."""
         data = {
             'JSESSIONID': self.session_id,
@@ -170,6 +142,5 @@ class ChadanHelper():
             'submitRemark': None,
         }
         res = self.session.post(CONFIRM_URL, data=data)
-        title = TITLE_CONFIRM_ORDER_FORMAT.format(
-            key, res.json()['errorMsg'][-5:])
-        Notification.send(title, res.text)
+        args['msg'] = res.json()['errorMsg']
+        Notification.send_confirm_order(args)
