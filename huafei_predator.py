@@ -80,7 +80,8 @@ class HuaFeiPredator():
                 continue
             for account in self.config.accounts:
                 for operator in operators.get(account.platform, ''):
-                    if self.loop_status and amount > 0 and operator in OPERATORS:
+                    if self.loop_status and amount > 0 and \
+                       operator in OPERATORS:
                         amount -= self.accounts[account.platform].get_order(
                             value, amount, OPERATORS[operator])
                     time.sleep(self.config.sleep_duration / total_operators)

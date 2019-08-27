@@ -41,8 +41,8 @@ class Config(_Config):
     def __init__(self, config):
         if os.path.isfile(config):
             config = json.load(open(config))
-        elif isinstance(config, str):
-            config = json.loads(config)
+        else:
+            raise FileNotFoundError()
         super(Config, self).__init__(config)
 
         # Default value.
