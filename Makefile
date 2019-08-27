@@ -1,4 +1,4 @@
-.PHONY: clean deps install lint pycodestyle pyflakes pylint test
+.PHONY: clean deps lint pycodestyle pyflakes pylint dist
 
 clean:
 	find . -name '*.pyc' -print0 | xargs -0 rm -f
@@ -23,5 +23,6 @@ pyflakes:
 pylint:
 	-pylint *.py
 
-exe:
+dist:
 	pyinstaller --clean -F main.py
+	cp config.example.json README.md dist
