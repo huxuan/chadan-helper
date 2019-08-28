@@ -11,6 +11,8 @@ import os.path
 
 from util import parse_time
 
+CONFIG_FILENAME = 'config.json'
+
 
 class _Config():
     """Configuration Node."""
@@ -38,12 +40,12 @@ class _Config():
 
 class Config(_Config):
     """General Configuration."""
-    def __init__(self, config):
-        if os.path.isfile(config):
-            config = json.load(open(config))
+    def __init__(self):
+        if os.path.isfile(CONFIG_FILENAME):
+            config_dict = json.load(open(CONFIG_FILENAME))
+            super(Config, self).__init__(config_dict)
         else:
             raise FileNotFoundError()
-        super(Config, self).__init__(config)
 
         # Default value.
         self.options = [option for option in self.options if option[1]]

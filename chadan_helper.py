@@ -120,9 +120,8 @@ class ChadanHelper():
                     'platform': self.config.platform,
                     'username': self.config.username,
                     'mobile': order['rechargeAccount'],
-                    'operator':
-                        order['product']['province'] +
-                        OPERATORS[order['product']['operator']],
+                    'province': order['product']['province'],
+                    'operator': OPERATORS[order['product']['operator']],
                     'value': order['product']['faceValue']
                 }
                 if self.config.auto_confirmation:

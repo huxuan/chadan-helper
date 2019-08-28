@@ -6,17 +6,22 @@ Author: huxuan
 Email: i(at)huxuan.org
 Description: Notification module.
 """
-from urllib.parse import quote
-
 import requests
 
-SC_URL = 'https://sc.ftqq.com/{}.send?text={}&desp={}'
+import common
+
+SC_URL = 'https://sc.ftqq.com/{}.send'
+WXPUSHER_URL = 'http://wxmsg.dingliqc.com/send'
+CHADAN_ORDER_URL = 'http://www.chadan.cn/wang/order'
+CHADAN_SPECIAL_URL = 'http://www.chadan.cn/wang/specialFareMoblie'
+
+
 TITLE_CONFIRM_ORDER_FORMAT = '[HF]报单{mobile}{msg}'
-TITLE_GET_ORDER_FORMAT = '[HF]抢单 {mobile} {operator} {value}元'
+TITLE_GET_ORDER_FORMAT = '[HF]抢单 {mobile} {province}{operator} {value}元'
 CONTENT_ORDER_FORMAT = """
 ## 充值信息
 - 充值号码： **{mobile}**
-- 归属地： **{operator}**
+- 归属地： **{province}{operator}**
 - 面值： **{value}**
 
 ## 话费单来源
@@ -34,27 +39,49 @@ class Notification():  # pylint: disable=unused-variable
         cls.sckeys = sckeys
 
     @classmethod
-    def send(cls, title, content=''):
-        """Universal interface for sending notification."""
-        cls._send_sc(title, content)
+    def set_wxpusher_keys(cls, wxpusher_keys):
+        """Set WxPusher Keys in to notification module."""
+        cls.wxpusher_keys = wxpusher_keys
 
     @classmethod
     def send_confirm_order(cls, args):
         """Send confirming order notification."""
         title = TITLE_CONFIRM_ORDER_FORMAT.format(**args)
         content = CONTENT_ORDER_FORMAT.format(**args)
-        cls.send(title, content)
+        cls._send_sc(title, content)
+        cls._send_wxpusher(title, content, args)
 
     @classmethod
     def send_get_order(cls, args):
         """Send getting order notification."""
         title = TITLE_GET_ORDER_FORMAT.format(**args)
         content = CONTENT_ORDER_FORMAT.format(**args)
-        cls.send(title, content)
+        cls._send_sc(title, content)
+        cls._send_wxpusher(title, content, args)
 
     @classmethod
     def _send_sc(cls, text, desp):
         """Send ServerChain notification."""
         for sckey in cls.sckeys:
-            res = requests.get(SC_URL.format(sckey, quote(text), quote(desp)))
+            payload = {
+                'text': text,
+                'desp': desp
+            }
+            res = requests.get(SC_URL.format(sckey), params=payload)
             print(res.json())
+
+    @classmethod
+    def _send_wxpusher(cls, title, content, args):
+        """Send WxPusher notification."""
+        url = 'nourl'
+        if args['platform'].startswith(common.PLATFORM_CHADAN):
+            url = CHADAN_SPECIAL_URL if args['province'] == '全国' \
+                  else CHADAN_ORDER_URL
+        payload = {
+            'title': title,
+            'msg': content,
+            'userIds': cls.wxpusher_keys,
+            'url': url
+        }
+        res = requests.get(WXPUSHER_URL, params=payload)
+        print(res.json())

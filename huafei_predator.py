@@ -13,9 +13,8 @@ from chadan_helper import ChadanHelper
 from config import Config
 from notification import Notification
 from util import within_time_range
+import common
 
-CONFIG_FILENAME = 'config.json'
-PLATFORM_CHADAN = 'chadan'
 TEXT_EXIT = 'HuaFeiPredator 将要退出啦'
 TEXT_OFF_TIME = 'HuaFeiPredator 也要休息啦'
 ERROR_UNKNOWN_PLATFORM_FORMAT = "Unknown Platform: {}"
@@ -33,9 +32,10 @@ class HuaFeiPredator():
     def __init__(self):
         super(HuaFeiPredator, self).__init__()
         self.accounts = {}
-        self.config = Config(CONFIG_FILENAME)
+        self.config = Config()
         self.loop_status = True
         Notification.set_sckeys(self.config.sckeys)
+        Notification.set_wxpusher_keys(self.config.wxpusher_keys)
 
     def run(self):
         """Trigger the Predator."""
@@ -45,7 +45,7 @@ class HuaFeiPredator():
     def _parse_accounts(self):
         """Parse the accounts."""
         for account in self.config.accounts:
-            if account.platform.startswith(PLATFORM_CHADAN):
+            if account.platform.startswith(common.PLATFORM_CHADAN):
                 self.accounts[account.platform] = ChadanHelper(account)
             else:
                 raise ValueError(ERROR_UNKNOWN_PLATFORM_FORMAT.format(
