@@ -23,13 +23,13 @@ def main():
         return
     except Exception as exc:  # pylint: disable=broad-except
         print(exc)
-        input('未知错误，请附带上述信息告知维护者。按任意键退出...')
+        input('未知配置错误，请附带上述信息告知维护者。按任意键退出...')
         return
     try:
         app.run()
     except Exception as exc:  # pylint: disable=broad-except
         print(exc)
-        input('未知错误，请附带上述信息告知维护者。按任意键退出...')
+        input('未知运行错误，请附带上述信息告知维护者。按任意键退出...')
 
 
 if __name__ == '__main__':

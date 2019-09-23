@@ -25,9 +25,12 @@
     - 例如 `"chadan1" : "MUTS"`，表示 `chadan1` 对应的账号抢所有运营商的单子。
 - `sleep_duration`: 每条抢单条目中不同账号运营商请求之间的间隔。
   - 注意: 这里的间隔指同一条目所有运营商请求之间间隔的总和，不同抢单条目之间互不影响。
-- `sckeys`: 通过 [ServerChan](http://sc.ftqq.com/3.version) 实现微信通知的 key 列表。
-  - 注意: 这里是一个列表，为了实现多个微信同时通知，格式为 `"sckeys": ["key2", "key2"]`。
 - `check_time`: 是否检查时间的开关，在非设定时间将不进行抢单。
 - `start_time`: 开始抢单的时间，请勿修改格式，否则会影响解析。
   - 注意：这里是UTC时间，北京时间需减去8小时，如北京时间上午7点应设置为23:00。
 - `end_time`: 结束抢单的时间，注意事项同 `start_time`。
+- `sckeys`: 通过 [ServerChan](http://sc.ftqq.com/) 实现微信通知的 key 列表。
+  - 注意: 这里是一个列表，为了实现多个微信同时通知，格式为 `"sckeys": ["key2", "key2"]`。
+- `wxpusher_uids`: 通过 [WxPusher](http://wxpusher.zjiecode.com/) 实现微信通知的 uid 列表。
+  - 注意事项同 `sckeys`
+- `wxpusher_token`: 通过 [WxPusher](http://wxpusher.zjiecode.com/) 实现微信通知的 `APP_TOKEN`。

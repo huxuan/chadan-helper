@@ -8,6 +8,7 @@ Description: Entrance for HuaFei Predator.
 """
 from concurrent.futures import ThreadPoolExecutor
 import time
+import json
 
 from chadan_helper import ChadanHelper
 from config import Config
@@ -34,8 +35,7 @@ class HuaFeiPredator():
         self.accounts = {}
         self.config = Config()
         self.loop_status = True
-        Notification.set_sckeys(self.config.sckeys)
-        Notification.set_wxpusher_keys(self.config.wxpusher_keys)
+        Notification.set(self.config)
 
     def run(self):
         """Trigger the Predator."""
