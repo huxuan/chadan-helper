@@ -8,7 +8,6 @@ Description: Entrance for HuaFei Predator.
 """
 from concurrent.futures import ThreadPoolExecutor
 import time
-import json
 
 from chadan_helper import ChadanHelper
 from config import Config

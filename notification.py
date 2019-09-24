@@ -45,19 +45,26 @@ class Notification():  # pylint: disable=unused-variable
         """Send confirming order notification."""
         title = TITLE_CONFIRM_ORDER_FORMAT.format(**args)
         content = CONTENT_ORDER_FORMAT.format(**args)
+        url = cls._get_url(args)
         cls._send_sc(title, content)
-        cls._send_wxpusher(content, args)
+        cls._send_wxpusher(content, url)
 
     @classmethod
     def send_get_order(cls, args):
         """Send getting order notification."""
         title = TITLE_GET_ORDER_FORMAT.format(**args)
         content = CONTENT_ORDER_FORMAT.format(**args)
-        if args['platform'].startswith(common.PLATFORM_CHADAN):
-            url = CHADAN_SPECIAL_URL if args['province'] == '全国' \
-                  else CHADAN_ORDER_URL
+        url = cls._get_url(args)
         cls._send_sc(title, content)
         cls._send_wxpusher(content, url)
+
+    @classmethod
+    def _get_url(cls, args):
+        if args['platform'].startswith(common.PLATFORM_CHADAN):
+            if args['province'] == '全国':
+                return CHADAN_SPECIAL_URL
+            return CHADAN_ORDER_URL
+        return None
 
     @classmethod
     def _send_sc(cls, text, desp):
