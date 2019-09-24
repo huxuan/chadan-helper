@@ -47,7 +47,7 @@ class Notification():  # pylint: disable=unused-variable
         content = CONTENT_ORDER_FORMAT.format(**args)
         url = cls._get_url(args)
         cls._send_sc(title, content)
-        cls._send_wxpusher(content, url)
+        cls._send_wxpusher(title, content, url)
 
     @classmethod
     def send_get_order(cls, args):
@@ -56,7 +56,7 @@ class Notification():  # pylint: disable=unused-variable
         content = CONTENT_ORDER_FORMAT.format(**args)
         url = cls._get_url(args)
         cls._send_sc(title, content)
-        cls._send_wxpusher(content, url)
+        cls._send_wxpusher(title, content, url)
 
     @classmethod
     def _get_url(cls, args):
@@ -78,11 +78,11 @@ class Notification():  # pylint: disable=unused-variable
             print(res.json())
 
     @classmethod
-    def _send_wxpusher(cls, content, url=None):
+    def _send_wxpusher(cls, title, content, url=None):
         """Send WxPusher notification."""
         payload = {
             'appToken': cls.wxpusher_token,
-            'content': content,
+            'content': '{}\n{}'.format(title, content),
             'uids': cls.wxpusher_uids,
             'url': url
         }
