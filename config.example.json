@@ -27,11 +27,9 @@
     ],
     "sleep_duration": 0,
     "check_time": true,
-    "start_time": "23:00",
-    "end_time": "16:00",
-    "sckeys": [
-    ],
-    "wxpusher_uids": [
-    ],
-    "wxpush_token": ""
+    "start_time": "00:00",
+    "end_time": "12:00",
+    "sckeys": [ ],
+    "wxpusher_uids": [ ],
+    "wxpusher_token": ""
 }
