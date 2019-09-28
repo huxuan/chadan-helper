@@ -11,22 +11,18 @@ import requests
 import common
 
 SC_URL = 'https://sc.ftqq.com/{}.send'
-WXPUSHER_URL = 'http://wxpusher.zjiecode.com/api/send/message'
+WP_URL = 'http://wxpusher.zjiecode.com/api/send/message'
 CHADAN_ORDER_URL = 'http://www.chadan.cn/wang/order'
 CHADAN_SPECIAL_URL = 'http://www.chadan.cn/wang/specialFareMoblie'
 
 
-TITLE_CONFIRM_ORDER_FORMAT = '[HF]报单{mobile}{msg}'
-TITLE_GET_ORDER_FORMAT = '[HF]抢单 {mobile} {province}{operator} {value}元'
+TITLE_SC_CONFIRM_ORDER_FORMAT = '{mobile}{msg}'
+TITLE_SC_GET_ORDER_FORMAT = '{mobile} {province}{operator} {value}'
+TITLE_WP_CONFIRM_ORDER = '## 话费单已上报！'
+TITLE_WP_GET_ORDER = '## 话费单来啦~'
 CONTENT_ORDER_FORMAT = """
-## 充值信息
-- 充值号码： **{mobile}**
-- 归属地： **{province}{operator}**
-- 面值： **{value}**
-
-## 话费单来源
-- 平台： {platform}
-- 账户（*非充值号码！*）： {username}
+### **{mobile}** *{province}{operator}* *{value}*
+[来源] {platform} {username}
 """
 
 
@@ -37,26 +33,26 @@ class Notification():  # pylint: disable=unused-variable
     def set(cls, config):
         """Set config in notification module."""
         cls.sckeys = config.sckeys
-        cls.wxpusher_uids = config.wxpusher_uids
-        cls.wxpusher_token = config.wxpusher_token
+        cls.wpuids = config.wxpusher_uids
+        cls.wptoken = config.wxpusher_token
 
     @classmethod
     def send_confirm_order(cls, args):
         """Send confirming order notification."""
-        title = TITLE_CONFIRM_ORDER_FORMAT.format(**args)
+        title_sc = TITLE_SC_CONFIRM_ORDER_FORMAT.format(**args)
         content = CONTENT_ORDER_FORMAT.format(**args)
         url = cls._get_url(args)
-        cls._send_sc(title, content)
-        cls._send_wxpusher(title, content, url)
+        cls._send_sc(title_sc, content)
+        cls._send_wp(TITLE_WP_CONFIRM_ORDER, content, url)
 
     @classmethod
     def send_get_order(cls, args):
         """Send getting order notification."""
-        title = TITLE_GET_ORDER_FORMAT.format(**args)
+        title_sc = TITLE_SC_GET_ORDER_FORMAT.format(**args)
         content = CONTENT_ORDER_FORMAT.format(**args)
         url = cls._get_url(args)
-        cls._send_sc(title, content)
-        cls._send_wxpusher(title, content, url)
+        cls._send_sc(title_sc, content)
+        cls._send_wp(TITLE_WP_GET_ORDER, content, url)
 
     @classmethod
     def _get_url(cls, args):
@@ -78,13 +74,14 @@ class Notification():  # pylint: disable=unused-variable
             print(res.json())
 
     @classmethod
-    def _send_wxpusher(cls, title, content, url=None):
+    def _send_wp(cls, title, content, url=None):
         """Send WxPusher notification."""
         payload = {
-            'appToken': cls.wxpusher_token,
-            'content': '{}\n{}'.format(title, content),
-            'uids': cls.wxpusher_uids,
+            'appToken': cls.wptoken,
+            'content': '{}{}'.format(title, content),
+            'contentType': 3,
+            'uids': cls.wpuids,
             'url': url
         }
-        res = requests.post(WXPUSHER_URL, json=payload)
+        res = requests.post(WP_URL, json=payload)
         print(res.json())
