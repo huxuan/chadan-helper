@@ -8,12 +8,9 @@ Description: Notification module.
 """
 import requests
 
-import common
-
 SC_URL = 'https://sc.ftqq.com/{}.send'
 WP_URL = 'http://wxpusher.zjiecode.com/api/send/message'
 CHADAN_ORDER_URL = 'http://www.chadan.cn/wang/order'
-CHADAN_SPECIAL_URL = 'http://www.chadan.cn/wang/specialFareMoblie'
 
 
 TITLE_SC_CONFIRM_ORDER_FORMAT = '{mobile}{msg}'
@@ -41,26 +38,16 @@ class Notification():  # pylint: disable=unused-variable
         """Send confirming order notification."""
         title_sc = TITLE_SC_CONFIRM_ORDER_FORMAT.format(**args)
         content = CONTENT_ORDER_FORMAT.format(**args)
-        url = cls._get_url(args)
         cls._send_sc(title_sc, content)
-        cls._send_wp(TITLE_WP_CONFIRM_ORDER, content, url)
+        cls._send_wp(TITLE_WP_CONFIRM_ORDER, content, CHADAN_ORDER_URL)
 
     @classmethod
     def send_get_order(cls, args):
         """Send getting order notification."""
         title_sc = TITLE_SC_GET_ORDER_FORMAT.format(**args)
         content = CONTENT_ORDER_FORMAT.format(**args)
-        url = cls._get_url(args)
         cls._send_sc(title_sc, content)
-        cls._send_wp(TITLE_WP_GET_ORDER, content, url)
-
-    @classmethod
-    def _get_url(cls, args):
-        if args['platform'].startswith(common.PLATFORM_CHADAN):
-            if args['province'] == '全国':
-                return CHADAN_SPECIAL_URL
-            return CHADAN_ORDER_URL
-        return None
+        cls._send_wp(TITLE_WP_GET_ORDER, content, CHADAN_ORDER_URL)
 
     @classmethod
     def _send_sc(cls, text, desp):
