@@ -70,8 +70,11 @@ class Notification():  # pylint: disable=unused-variable
                 'text': text,
                 'desp': desp
             }
-            res = requests.get(SC_URL.format(sckey), params=payload)
-            print(res.json())
+            try:
+                res = requests.get(SC_URL.format(sckey), params=payload)
+                print(res.json())
+            except Exception as exc: # pylint: disable=broad-except
+                print("Fail to send ServerChain notification: {}".format(exc))
 
     @classmethod
     def _send_wp(cls, title, content, url=None):
@@ -83,5 +86,8 @@ class Notification():  # pylint: disable=unused-variable
             'uids': cls.wpuids,
             'url': url
         }
-        res = requests.post(WP_URL, json=payload)
-        print(res.json())
+        try:
+            res = requests.post(WP_URL, json=payload)
+            print(res.json())
+        except Exception as exc: # pylint: disable=broad-except
+            print("Fail to send WxPusher notification: {}".format(exc))
